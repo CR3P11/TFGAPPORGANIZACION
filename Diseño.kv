@@ -92,10 +92,10 @@
             pos_hint: {"top": 0.9, "center_x": 0.25}
             on_release: root.pantallanotas()
         Button:
-            text: "Calendario"
+            text: "Ajustes"
             size_hint: 0.4, 0.3
             pos_hint: {"top": 0.9, "center_x": 0.7}
-            on_release: root.pantallacalendario()
+            on_release: root.pantallaAjustes()
         Button:
             text: "Contactos"
             size_hint: 0.4, 0.3
@@ -107,10 +107,10 @@
             pos_hint: {"top": 0.55, "center_x": 0.25}
             on_release: root.pantallamochila()
         Button:
-            text: "Ajustes"
+            text: "Salir"
             size_hint: 0.4, 0.1
             pos_hint: {"top": 0.2, "center_x": 0.7}
-            on_release: root.pantallaAjustes()
+            on_release: root.pantallaAcceder()
 
 
 
@@ -172,30 +172,94 @@
             on_release: app.pantallaPrincipal(),root.borrar()
 
 <PantallaMochila>:
-    id: screen_backpack
-    FloatLayout:
-            
+    GridLayout:
+        cols: 1
+        spacing: 20
+        padding: 20
         
-    Button:
-        text: 'Actualizar'
-        size_hint: 0.2, 0.05
-        pos_hint: {"top": 0.95, "center_x": 0.8}
-        on_release: root.actualizar_mochila()
+        TextInput:
+            id: mochila
+            text: ""
+            max_length: 16
+            hint_text: "Nombre de tu mochila..."
+            size_hint: 0.5, 0.1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.8}
     
-    Button:
-        text: 'Volver'
-        size_hint_y: 0.1
-        on_release: app.pantallaPrincipal(),root.borrar()
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint: 1, 0.1
+            spacing: 20
+            pos_hint: {"top": 0.7}
+            
+            Button:
+                text: "+"
+                id: plus_button
+                size_hint: 0.15, 1
+                pos_hint: {"center_x": 0.5}
+                on_release: root.añadir_mochila()
+                
+        Button:
+            text: "<"
+            size_hint: 0.15, 0.05
+            pos_hint: {"top": 0.95, "center_x": 0.17}
+            on_release: app.pantallaPrincipal()
+        ScrollView:
+            do_scroll_x: False
+            
+            GridLayout:
+                id: mochilas_layout
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+
+
 
 <PantallaContactos>:
     id: screen_contact
-
-
-<PantallaCalendario>:
-    id: screen_calendar
+    FloatLayout:
+        id: layout_contact
+        ScrollView:
+            id: scroll_view
+            Button:
+                text: "<"
+                size_hint: 0.15, 0.05
+                pos_hint: {"top": 0.95, "center_x": 0.17}
+                on_release: app.pantallaPrincipal()
 
 <PantallaAjustes>:
     id: screen_settings
+    FloatLayout:
+        id: layout_settings
+        Button:
+            text:"Cambiar Color"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: root.color()
+        Button:
+            text: "Imagen Perfil"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.7, "center_x": 0.5}
+            on_release: root.imagen()
+        Button:
+            text: "Idioma"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.6, "center_x": 0.5}
+            on_release: root.idioma()
+        Button:
+            text: "Usuario"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.5, "center_x": 0.5}
+            on_release: root.usuario()
+        Button:
+            text: "FeedBack"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.4, "center_x": 0.5}
+            on_release: root.ayuda()
+        Button:
+            text: "<"
+            size_hint: 0.15, 0.05
+            pos_hint: {"top": 0.95, "center_x": 0.17}
+            on_release: app.pantallaPrincipal()
 <ContenidoScreen>:
     name: 'contenido'
     Button:
@@ -203,3 +267,64 @@
         size_hint: 0.15, 0.05
         pos_hint: {"top": 0.95, "center_x": 0.17}
         on_release: root.pantallaAnterior()
+
+
+<SelectColor>:
+    id: color
+    GridLayout:
+        id: color_layout
+        cols: 2
+        Button:
+            text: "Amarillo"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: app.ColorCanvas("amarillo")
+        Button:
+            text: "Verde"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: app.ColorCanvas("verde")
+        Button:
+            text: "Rojo"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: app.ColorCanvas("rojo")
+        Button:
+            text: "Naranja"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: app.ColorCanvas("naranja")
+        Button:
+            text: "Morado"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: app.ColorCanvas("morado")
+        Button:
+            text: "Azul"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: app.ColorCanvas("azul")
+        Button:
+            text: "Cian"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: app.ColorCanvas("cian")
+        Button:
+            text: "Gris"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: app.ColorCanvas("gris")
+        Button:
+            text: "Blanco"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: app.ColorCanvas("blanco")
+        Button:
+            text: "Negro"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+            on_release: app.ColorCanvas("negro")
+        
+
+
+
