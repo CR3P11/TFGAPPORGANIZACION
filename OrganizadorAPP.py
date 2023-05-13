@@ -36,6 +36,7 @@ from kivy.uix.popup import Popup
 from kivy.graphics import Color, Rectangle
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
+from kivy.core.audio import SoundLoader
 
 Config.set('graphics', 'width', '400')
 Config.set('graphics', 'height', '600')
@@ -278,6 +279,7 @@ class PantallaNotas(Screen):
     def mostrarNotas(self):
         self.screen_manager.current = 'MostrarNotas'
         
+        
 
     
     
@@ -496,6 +498,22 @@ class PantallaAjustes(Screen):
         self.screen_manager.add_widget(color_screen)
 
         self.screen_manager.current = 'color'
+    
+    def musica(self):
+        music_screen = Screen(name='musica')
+        music_screen.add_widget(Musica())
+        self.screen_manager.add_widget(music_screen)
+
+        self.screen_manager.current = 'musica'
+    
+    def ayuda(self):
+        ayuda_screen = Screen(name='ayuda')
+        ayuda_screen.add_widget(Ayuda())
+        self.screen_manager.add_widget(ayuda_screen)
+        
+        self.screen_manager.current = 'ayuda'
+
+
 
 class SelectColor(Screen):
     screen_manager = Organizador().screen_manager
@@ -513,6 +531,43 @@ class SelectColor(Screen):
         color_rgba = color_map.get(color)
         
         self.screen_manager.canvas.add(Color(*color_rgba))
+class Ayuda(Screen):
+    
+    def enviar(self,texto):
+        
+        print(texto)
+    
+    def borrar(self):
+        self.ids.text_input.text = ''
+class Musica(Screen):
+
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.sound = None
+    
+    def play_music(self, pista):
+        if pista == 1:
+            if self.sound:
+                self.sound.stop()
+            # Cargar el archivo de audio
+            self.sound = SoundLoader.load('Assets\\Sound\\Lofi1.mp3')
+        elif pista == 2:
+            if self.sound:
+                self.sound.stop()
+            self.sound = SoundLoader.load('Assets\\Sound\\Lofi2.mp3') 
+        if self.sound:
+            # Establecer la propiedad loop en True para reproducir en bucle
+            self.sound.loop = True
+            # Reproducir el archivo de audio
+            self.sound.play()   
+    
+    
+    
+    def stop_music(self):
+        if self.sound:
+            self.sound.stop()
+
 
 
 class CustomScreenManager(Screen):
@@ -528,22 +583,34 @@ class ContenidoScreen(Screen):
 
     def __init__(self, contenido, **kwargs):
         super().__init__(**kwargs)
+        
+        with self.canvas:
+            Color(0, 0, 0, 1)  # Color negro
+            self.rect = Rectangle(pos=self.pos, size=self.size)
+        self.bind(pos=self.update_rect, size=self.update_rect)
+
         self.contenido = contenido
         self.label = Label(text=contenido)
-
+        self.button = Button(text="<", size_hint=(0.15, 0.05), pos_hint={"top": 0.95, "center_x": 0.17})
+        self.button.bind(on_release=self.pantallaAnterior)
         self.add_widget(self.label)
+        self.add_widget(self.button)
 
-    
-    def pantallaAnterior(self):
+    def update_rect(self, *args):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
 
+    def pantallaAnterior(self, *args):
         self.screen_manager.current = 'notas'
         self.screen_manager.remove_widget(self.screen_manager.get_screen('contenido'))
-
 class PantallaMostrarNotas(Screen):
     screen_manager = Organizador().screen_manager
     notas = ListProperty([])
-    
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        PantallaMostrarNotas.actualizar_notas(self)
     def actualizar_notas(self):
+        PantallaMostrarNotas.borrar(self)
         with open('notas.json') as f:
             notas = json.load(f)
 
@@ -557,6 +624,7 @@ class PantallaMostrarNotas(Screen):
                 grid_layout.add_widget(contenido_label)
         self.add_widget(grid_layout)
         self.grid_layout = grid_layout
+
 
     def borrar(self):
         try:
