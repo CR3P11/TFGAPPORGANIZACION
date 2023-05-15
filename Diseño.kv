@@ -391,3 +391,62 @@
             size_hint: 0.1, 0.01
             pos_hint: {"top": 0.95, "center_x": 0.17}
             on_release: app.pantallaPrincipal()
+<Imagen>:
+    id: 'imagen_screen'
+    FloatLayout:
+        Button:
+            text: "<"
+            size_hint: 0.15, 0.05
+            pos_hint: {"top": 0.95, "center_x": 0.17}
+            on_release: app.pantallaPrincipal()
+        Image:
+            id: imagen
+            source: ''
+            size_hint: None, None
+            size: 350, 350 
+            pos_hint: {"center_x": 0.5, "center_y": 0.5} 
+        Button:
+            text: "seleccionar imagen"
+            size_hint: 0.6, 0.05
+            pos_hint:{"top": 0.1, "center_x": 0.5}
+            on_release: root.select_file()
+<Usuario>:
+    id: usuario
+    FloatLayout:
+        Button:
+            text: "<"
+            size_hint: 0.15, 0.05
+            pos_hint: {"top": 0.95, "center_x": 0.17}
+            on_release: app.pantallaPrincipal()
+        TextInput:
+            id: username_input
+            hint_text: "Nombre de usuario"
+            size_hint: 0.8, 0.1
+            pos_hint: {"top": 0.85, "center_x": 0.5}
+        TextInput:
+            id: name_input
+            hint_text: "Nombre Completo"
+            size_hint: 0.8, 0.1
+            pos_hint: {"top": 0.55, "center_x": 0.5}
+        TextInput:
+            id: edad
+            hint_text: "Edad"
+            size_hint: 0.2, 0.1
+            pos_hint: {"top": 0.7, "center_x": 0.2}     
+        TextInput:
+            id: descripcion
+            hint_text: "Descripción"
+            size_hint: 0.8, 0.3
+            pos_hint: {"top": 0.4, "center_x": 0.5}
+        Image:
+            id: imagen
+            source: ''
+            size_hint: None, None
+            size: 100, 100
+            pos_hint: {"top": 0.72, "center_x": 0.6}   
+        Button:
+            id: save
+            text: "Guardar"
+            size_hint: 0.2, 0.05
+            pos_hint: {"top": 0.95, "center_x": 0.5}
+            on_release: root.save(username_input.text,name_input.text,edad.text,descripcion.text)
