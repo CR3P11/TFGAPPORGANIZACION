@@ -52,12 +52,12 @@ Config.set('graphics', 'height', '600')
 # # Window.keyboard_anim_args = {'d':.2,'t':'in_out_expo'}
 # # Window.softinput_mode = "below_target"
 
-usuarioActual = '0'
+
 
 class Organizador(App):
     #Inicializo con esta clase, la cual hereda la clase App de Kivy.
 
-    
+    usuarioActual = '0'
     screen_manager = ScreenManager()
     
     # Agregar las pantallas Acceder y Registro al ScreenManager
@@ -198,7 +198,16 @@ class Acceder(Screen):
                 self.ids.username_input.text = '' 
                 self.ids.Señal_Inicio.text = 'Usuario Incorrecto'
         if state == True:
-            usuarioActual = id_usuario
+            Organizador.usuarioActual = id_usuario
+            mochila_instance = PantallaMochila.instance
+            if os.path.exists('mochilas.json'):
+                os.remove('mochilas.json')
+            if mochila_instance:
+                mochila_instance.actualizar()
+            contacto_instance = PantallaContactos.instance
+            if contacto_instance:
+                contacto_instance.actualizar()
+        state = False
     
 class Registro(Screen):
     screen_manager = Organizador().screen_manager
@@ -247,7 +256,7 @@ class Registro(Screen):
                     state = 'El usuario exite'
                     break
             if userj != user:
-                send_data = {i:{'User':user,'Password':password,'Email':email,'id':str(i),'image':"data:image/png;base64,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",'nombre_completo':'','edad':'','description':''}}
+                send_data = {i:{'User':user,'Password':password,'Email':email,'id':str(i),'image':"data:image/png;base64,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",'nombre_completo':'','edad':'','description':'','Mochilas':['0'],'Amigos':['0']}}
                 requests.patch(url=url,json=send_data)
                 state = 'Usuario registrado correctamente'
         
@@ -398,31 +407,89 @@ class PantallaMostrarNotas(Screen):
         self.actualizar_notas()
 
 class PantallaMochila(Screen):
-    mochilas = {}
+    mochilas = []
     screen_manager = Organizador().screen_manager
+    mochilas_layout = ''
+    urlMochila = "https://organizador-mochila.firebaseio.com/.json"
+    key= "DDG9a9IkOp9ZtvtbhmU0BPJacoBfSxsb4KglypP6"
+    url="https://organizador-5de77-default-rtdb.europe-west1.firebasedatabase.app/.json"
+
+    actualizada = False
+    instance = None
+   
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        PantallaMochila.instance = self
+        if os.path.exists('mochilas.json'):
+            os.remove('mochilas.json')
+        if self.actualizada == False:
+            self.mochilas = []
+            mochilas = requests.get(self.urlMochila+'?auth='+self.key).json()
+            
+            usuario = requests.get(self.url+'?auth='+self.key).json()
+            i=0
+            
+            for user in usuario:
+                if user['id'] == Organizador.usuarioActual:
+                    for element in user['Mochilas']:
+                        for mochila in mochilas:
+                            if mochila is None:
+                                continue
+                            if element == mochila['id_mochila']:
+                                self.mochilas.append(mochila)
+                                i+=1
+                                break
+                        
+
+            
+            
+            
+            with open('mochilas.json', 'w') as f:
+                json.dump(self.mochilas, f)
+
+            # Cargar las mochilas desde el archivo JSON
+            # with open(mochilasJson, 'r') as f:
+            #     self.mochilas = json.load(f)
+            
+            # Crear los botones de las mochilas
+            self.mochilas_layout = self.ids.mochilas_layout
+            for nombre_mochila in self.mochilas:
+                mochila_button = Button(
+                    text=nombre_mochila['Nombre'],
+                    size_hint_y=None,
+                    height=dp(40),
+                    on_release=lambda button: self.mostrar_items_mochila(button.text)
+                )
+                self.mochilas_layout.add_widget(mochila_button)
+                self.mochilas_layout.height += mochila_button.height + self.mochilas_layout.spacing[1]
+            self.actualizada = True
+        else:
+            # self.mochilas_layout = self.ids.mochilas_layout
+            # self.ids.mochilas_layout.clear_widgets()
+            try:
+                if self.mochilas_layout is not None:
+                    for widget in self.mochilas_layout.children[:]:
+                        self.mochilas_layout.remove_widget(widget)
+            except AttributeError:
+                pass
+            self.actualizada = False
+            self.__init__()
+   
         
-        # Cargar las mochilas desde el archivo JSON
-        with open('mochilas.json', 'r') as f:
-            self.mochilas = json.load(f)
-        
-        # Crear los botones de las mochilas
-        mochilas_layout = self.ids.mochilas_layout
-        for nombre_mochila, items in self.mochilas.items():
-            mochila_button = Button(
-                text=nombre_mochila,
-                size_hint_y=None,
-                height=dp(40),
-                on_release=lambda button: self.mostrar_items_mochila(button.text)
-            )
-            mochilas_layout.add_widget(mochila_button)
-            mochilas_layout.height += mochila_button.height + mochilas_layout.spacing[1]
 
     def añadir_mochila(self):
+
         nombre_mochila = self.ids.mochila.text.strip()
+        mochilas = requests.get(self.urlMochila+'?auth='+self.key).json()
+        
+       
+
+
         if nombre_mochila:
-            self.mochilas[nombre_mochila] = []
+            # Crear nuevo diccionario en la lista de mochilas
+            self.mochilas.append({"Nombre":nombre_mochila,'Objetos':[],'id_mochila':str(len(mochilas))})
+         
+             
             self.ids.mochila.text = ""
             mochilas_layout = self.ids.mochilas_layout
             mochila_button = Button(
@@ -431,32 +498,95 @@ class PantallaMochila(Screen):
                 height=dp(40),
                 on_release=lambda button: self.mostrar_items_mochila(button.text)
             )
-            self.ids.mochilas_container.add_widget(mochila_button)
-            self.ids.mochilas_container.height += mochila_button.height + mochilas_layout.spacing[1]
+            self.ids.mochilas_layout.add_widget(mochila_button)
+            self.ids.mochilas_layout.height += mochila_button.height + mochilas_layout.spacing[1]
             self.ids.mochila.pos_hint = {"center_x": 0.5, "center_y": 0.5}
-            self.ids.plus_button.pos_hint = {"center_x": 0.5, "center_y": 0.4}
+            # self.ids.plus_button.pos_hint = {"center_x": 0.5, "center_y": 0.4}
+
+
 
             with open('mochilas.json', 'w') as f:
                 json.dump(self.mochilas, f)
-    
+                
     def mostrar_items_mochila(self, nombre_mochila):
         items_screen = Screen(name='items')
-        items_screen.add_widget(Items(nombre_mochila,self.mochilas[nombre_mochila]))
+        items_screen.add_widget(Items(nombre_mochila))
         self.screen_manager.add_widget(items_screen)
         
         self.screen_manager.current = 'items'
+    
+    def guardar_mochila(self):
+        if os.path.exists('mochilas.json'):
+            with open('mochilas.json', 'r') as f:
+                mochilas_data = json.load(f)
+            
+            # Obtener las mochilas existentes de Firebase
+            mochilas_existing = requests.get(self.urlMochila + '?auth=' + self.key).json()
+            usuario = requests.get(self.url + '?auth=' + self.key).json()
+            IdMochilas = []
+            # Actualizar las mochilas existentes con las nuevas mochilas
+            for mochila in mochilas_existing:
+                if mochila == None:
+                    continue
+                for mochilaPropia in mochilas_data:
+                    if mochilaPropia['id_mochila'] not in IdMochilas:
+                        #Si existe la mochila actualiza los objetos
+                        if mochila['id_mochila'] == mochilaPropia['id_mochila']:
+                            if 'Objetos' in mochila:
+                                mochila['Objetos'] = mochilaPropia['Objetos']
+                            IdMochilas.append(mochilaPropia['id_mochila'])
+
+                        
+                        if len(mochilas_existing) <= int(mochilaPropia['id_mochila']):
+                                # Si no existe la mochila en Firebase lo agrega
+                                mochilas_existing.append(mochilaPropia)
+                                IdMochilas.append(mochilaPropia['id_mochila'])
+                            
+
+            for user in usuario:
+                if user['id'] == Organizador.usuarioActual:
+                    user['Mochilas'] = IdMochilas
+                    break
+            
+
+            
+
+            # Guardar usuario en firebase
+            requests.put(self.url + '?auth=' + self.key, json=usuario)  
+            # Guardar las mochilas actualizadas en Firebase
+            response = requests.put(self.urlMochila + '?auth=' + self.key, json=mochilas_existing)
+            
+            if response.status_code == 200:
+                print("Las mochilas se han guardado exitosamente en Firebase.")
+            else:
+                print("Hubo un error al guardar las mochilas en Firebase.")
+
+            # Eliminar el archivo 'mochilas.json'
+            os.remove('mochilas.json')
+            # Actualizar la lista de mochilas
+            self.mochilas = []
+            # Actualizar la lista de mochilas en la pantalla
+            self.__init__()
+        else:
+            self.__init__()
+    def actualizar(mochila_instance):
+        # Actualizar mochilas
+        mochila_instance.actualizada = True
+        mochila_instance.guardar_mochila()
+
 class Items(Screen):
     screen_manager = Organizador().screen_manager
     items_layout = GridLayout(cols=1, spacing=10, size_hint_y=1)
     
-    def __init__(self, mochila, items):
+    def __init__(self, mochila):
         # Guardar el nombre de la mochila en un atributo
         self.nombre_mochila = mochila
         
         # Crear un GridLayout para los items
         self.items_layout.bind(minimum_height=self.items_layout.setter('height'))
-       
 
+        with open('mochilas.json', 'r') as f:
+            items = json.load(f)
 
 
         # Añadir un Label con el nombre de la mochila
@@ -464,18 +594,26 @@ class Items(Screen):
 
         space = Label(text="", size_hint_y=None, height=dp(70))
         self.items_layout.add_widget(space)
-        
-        if items:
-            # Añadir los botones de los items
-            for item in items:
-                item_button = Button(text=item, size_hint_y=None, height=dp(25),on_release=lambda event, nombre_item=item:self.eliminarItem(nombre_item, mochila,scroll_view, self.items_layout))
-                self.items_layout.add_widget(item_button)
-        else:
-            # Agregar un widget de relleno para asegurarse de que el GridLayout tenga una altura mínima
-            filler = Label(text="No hay objetos", size_hint_y=None, height=dp(25))
-            self.items_layout.add_widget(filler)
-        
-        
+        for item in items:
+            if item['Nombre']==mochila:
+                if 'Objetos' in item:
+                       
+                    if len(item['Objetos'])!=0:
+                        # Añadir los botones de los items
+                        for objeto in item['Objetos']:
+                            item_button = Button(text=objeto, size_hint_y=None, height=dp(25),on_release=lambda event, nombre_item=objeto:self.eliminarItem(nombre_item, mochila,scroll_view, self.items_layout))
+                            self.items_layout.add_widget(item_button)
+                        break
+                    else:
+                        # Agregar un widget de relleno para asegurarse de que el GridLayout tenga una altura mínima
+                        filler = Label(text="No hay objetos", size_hint_y=None, height=dp(25))
+                        self.items_layout.add_widget(filler)
+                        break
+                else:
+                    # Agregar un widget de relleno para asegurarse de que el GridLayout tenga una altura mínima
+                    filler = Label(text="No hay objetos", size_hint_y=None, height=dp(25))
+                    self.items_layout.add_widget(filler)
+                    break
 
         self.items_layout.height = len(items) * (dp(40) + self.items_layout.spacing[1])
    
@@ -487,29 +625,51 @@ class Items(Screen):
         self.add_widget(scroll_view)
         self.add_widget(Button(text="<", size_hint=(0.15, 0.05), pos_hint={"x": 0, "top": 0.98}, on_release=lambda event: self.pantallaAnterior(scroll_view,self.items_layout)))
         self.add_widget(Button(text="+", size_hint=(0.15, 0.05), pos_hint={"x": 0.80, "top": 0.98}, on_release=lambda event: self.AñadirItems(mochila,scroll_view,self.items_layout)))
-    
+        self.add_widget(Button(text="Eliminar Mochila", size_hint=(0.3, 0.06), pos_hint={"x": 0.35, "top": 0.98}, on_release=lambda event: self.eliminarMochila(mochila)))
     def eliminarItem(self, nombre_item, mochila,scroll_view, items_layout):
         # Obtener la lista actual de items de la mochila
         mochilas = json.load(open("mochilas.json", "r"))
-        items = mochilas[mochila]
-        # Eliminar el item de la lista
-        items.remove(nombre_item)
-        # Actualizar el JSON
-        mochilas[mochila] = items
-        with open("mochilas.json", "w") as f:
-            json.dump(mochilas, f)
+        for mochilalist in mochilas:
+            if mochilalist['Nombre']==mochila:
+                items = mochilalist['Objetos']
+                # Eliminar el item de la lista
+                items.remove(nombre_item)
+                mochilalist['Objetos']=items
+                with open("mochilas.json", "w") as f:
+                    json.dump(mochilas, f)
+                break
+    
+
+
         # Actualizar la pantalla de items
         items_layout.clear_widgets()
         self.borrar(scroll_view,items_layout)
-        self.__init__(mochila, items)
+        self.__init__(mochila)
 
         
+    def eliminarMochila(self,mochila):
+        mochilas = json.load(open("mochilas.json", "r"))
+
+        # Eliminar la mochila
+        for mochilalist in mochilas:
+            if mochilalist['Nombre'] == mochila:
+                mochilas.remove(mochilalist)
+                break  # Exit the loop after removing the mochila
+        
+        # Save the modified list back to the JSON file
+        with open("mochilas.json", "w") as file:
+            json.dump(mochilas, file)
+        
+        self.screen_manager.current = 'mochila'
+        mochila_instance = PantallaMochila.instance
+        if mochila_instance:
+            mochila_instance.actualizar()
     
-    
-    def pantallaAnterior(self,scroll_view,items_layout):
+    def pantallaAnterior(self, scroll_view, items_layout):
         self.screen_manager.current = 'mochila'
         self.screen_manager.remove_widget(self.screen_manager.get_screen('items'))
-        self.borrar(scroll_view,items_layout)
+        self.borrar(scroll_view, items_layout)
+
 
 
     def AñadirItems(self,mochila,scroll_view,items_layout):
@@ -537,16 +697,30 @@ class Items(Screen):
         
         # Obtener la lista actual de items de la mochila
         mochilas = json.load(open("mochilas.json", "r"))
-        items = mochilas[mochila]
-        # Agregar el nuevo item a la lista
-        items.append(nombre_item)
+        for mochilalist in mochilas:
+            if 'Objetos' in mochilalist:
+                if mochilalist['Nombre'] == mochila:
+                    items = mochilalist['Objetos']
+                    # Agregar el nuevo item a la lista
+                    items.append(nombre_item)
+                    mochilalist['Objetos'] = items
+                    break
+            else:
+                objetos = []
+                mochilalist['Objetos'] = objetos
+                if mochilalist['Nombre'] == mochila:
+                    items = mochilalist['Objetos']
+                    # Agregar el nuevo item a la lista
+                    items.append(nombre_item)
+                    mochilalist['Objetos'] = items
+                    break
+
         # Actualizar el JSON
-        mochilas[mochila] = items
         with open("mochilas.json", "w") as f:
             json.dump(mochilas, f)
         # Actualizar la pantalla de items
         self.borrar(scroll_view,items_layout)
-        self.__init__(mochila, items)
+        self.__init__(mochila)
         popup.dismiss()
 
     def borrar(self,scroll_view,items_layout):
@@ -563,8 +737,142 @@ class Items(Screen):
 
 
 class PantallaContactos(Screen):
-    None
+    urlMochila = "https://organizador-mochila.firebaseio.com/.json"
+    key= "DDG9a9IkOp9ZtvtbhmU0BPJacoBfSxsb4KglypP6"
+    url="https://organizador-5de77-default-rtdb.europe-west1.firebasedatabase.app/.json"
+    
+    actualizada = False
+    instance = None
 
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        if self.actualizada == False:
+            PantallaContactos.instance = self
+            data = requests.get(self.url+'?auth='+self.key)
+            scrollview = self.ids.layout_scroll
+            for user in data.json():
+                if user['id'] == Organizador.usuarioActual:
+                    if 'Amigos' not in user:
+                        user['Amigos'] = []  # Crear el campo 'Amigos' como una lista vacía
+                    for amigo in user['Amigos']:
+                        for user_ in data.json():
+                            if user_['id'] == amigo:
+                                btn = Button(text=user_['User'])
+                                nombre_contacto = user_['User']
+                                btn.bind(on_release= lambda event: self.amigo(nombre_contacto))
+                                logger.info(user_['User'])
+                                scrollview.add_widget(btn)
+                                
+            self.actualizada == True
+        else: 
+            self.actualizada == False
+    
+    def añadirContacto(self):
+        # Popup
+        popup = Popup(title="Añadir Contacto", size_hint=(None, None), size=(400, 200))
+
+        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        etiqueta = Label(text="Nombre:")
+        nombre_contacto = TextInput(multiline=False, size_hint=(1, None), height=30)
+        boton_layout = BoxLayout(size_hint=(1, None), height=40, spacing=10)
+        boton = Button(text="Añadir")
+        boton2 = Button(text="Cancelar")
+
+        layout.add_widget(etiqueta)
+        layout.add_widget(nombre_contacto)
+        layout.add_widget(boton_layout)
+        boton_layout.add_widget(boton)
+        boton_layout.add_widget(boton2)
+
+        boton.bind(on_release=lambda x: self.añadirContacto_(popup, nombre_contacto))
+        boton2.bind(on_release=lambda x: popup.dismiss())
+        popup.content = layout
+        popup.open()
+
+    def amigo(self,nombre_contacto):
+        # Popup
+        popup = Popup(title=nombre_contacto, size_hint=(None, None), size=(400, 200))
+        gridlayout = GridLayout(size_hint=(100, None), size=(400, 130), cols=1)
+        gridlayout.add_widget(Button(text="Ver Mochilas",on_release= lambda event: self.mochilasContacto(nombre_contacto)))
+        # gridlayout.add_widget(Button(text="Chatear"))
+        gridlayout.add_widget(Button(text="Eliminar Contacto",on_release= lambda event: self.eliminarContacto(nombre_contacto,popup)))
+        gridlayout.add_widget(Button(text="Salir", on_release=lambda event: popup.dismiss()))
+        popup.content = gridlayout
+        popup.open()
+
+    def añadirContacto_(self, popup, nombre_contacto):
+        logger.info(nombre_contacto.text)
+        existe = False
+        data = requests.get(self.url+'?auth='+self.key)
+        mensaje = 'Error'
+        for user in data.json():
+            if nombre_contacto.text == user['User']:
+                
+                
+                if user['id'] == Organizador.usuarioActual:
+                    logger.info('El usuario eres tú')
+                    mensaje = 'El usuario eres tú'
+                    break
+                
+                else:
+                    for user_ in data.json():
+                        if user_['id'] == Organizador.usuarioActual:
+                            if 'Amigos' not in user:
+                                user_['Amigos'] = []  # Crear el campo 'Amigos' como una lista vacía
+                            if user['id'] in user_['Amigos']:
+                                # logger.info('Ya eres amigo de ese usuario')
+                                mensaje = 'Ya eres amigo de ese usuario'
+                                existe = True
+                                break
+                            else:
+                                # logger.info('El usuario existe y se va a agregar')
+                                existe = True
+                                
+                                
+                                mensaje = 'Correcto'
+                                self.actualizar()
+                                break
+        
+        if existe == False:
+            # logger.info('El usuario no existe')
+            mensaje = 'El usuario no existe'
+
+        popup_content = Label(text=mensaje)
+        close_button = Button(text='Cerrar popup', size_hint=(None, None), size=(150, 50))
+        popup_content.add_widget(close_button)
+        popup2 = Popup(title='Popup de Mensaje',
+                    content=popup_content,
+                    size_hint=(0.5, 0.5),
+                    auto_dismiss=False)
+        close_button.bind(on_release=popup2.dismiss)
+        popup2.open()
+            
+
+        popup.dismiss()
+    def mochilasContacto(self,nombre_contacto):
+        logger.info('Mochilas Contacto')
+
+    def eliminarContacto(self,nombre_contacto,popup):
+        data = requests.get(self.url+'?auth='+self.key)
+        for user in data.json():
+            if user['id'] == Organizador.usuarioActual:
+                for user_ in data.json():
+                    if user_['User'] == nombre_contacto:
+                        user['Amigos'].remove(user_['id'])
+                        break
+        requests.patch(url=self.url,json = data.json())
+        popup.dismiss()
+        self.actualizar()
+
+
+    def actualizar(contacto_instance):
+        # Actualizar mochilas
+        contacto_instance.actualizada = False
+        contacto_instance.borrar()
+        contacto_instance.__init__()  
+    def borrar(self):
+        layout_scroll = self.ids.layout_scroll
+        layout_scroll.clear_widgets()   
 
 class PantallaAjustes(Screen):
     screen_manager = Organizador().screen_manager
@@ -667,7 +975,7 @@ class Imagen(Screen):
     def __init__(self, **kwargs):
         super(Imagen, self).__init__(**kwargs)
         for value in self.data.json():
-            if usuarioActual == value['id']:
+            if Organizador.usuarioActual == value['id']:
                 imagen = value['image']
 
         self.ids.imagen.source = imagen
@@ -683,7 +991,7 @@ class Imagen(Screen):
             self.ids.imagen.source = imagen
             popup.dismiss()
             for value in self.data.json():
-                if value['id'] == usuarioActual:
+                if value['id'] == Organizador.usuarioActual:
                     value['image'] = imagen
                     send_data = {'image': imagen}
                     url = "https://organizador-5de77-default-rtdb.europe-west1.firebasedatabase.app/" + str(value['id']) + '.json'
@@ -724,7 +1032,7 @@ class Usuario(Screen):
     def __init__(self):
         super().__init__()
         for value in self.data.json():
-            if value['id'] == usuarioActual:
+            if value['id'] == Organizador.usuarioActual:
                 self.ids.username_input.text = value['User']
                 self.ids.imagen.source = value['image']
                 self.ids.descripcion.text = value['description']
@@ -738,14 +1046,14 @@ class Usuario(Screen):
         # logger.info(descripcion)
         error = False
         for value in self.data.json():
-            if value['id'] == usuarioActual:
+            if value['id'] == Organizador.usuarioActual:
                 for item in self.data.json():
                     if len(usuario) < 4:
                         popup = Popup(title="Error", content=Label(text="El usuario es demasiado corto"), size_hint=(0.6, 0.6))
                         popup.open()
                         error = True
                         break
-                    if usuario == item['User'] and item['id']!=usuarioActual:
+                    if usuario == item['User'] and item['id']!=Organizador.usuarioActual:
                         popup = Popup(title="Error", content=Label(text="El usuario ya existe"), size_hint=(0.6, 0.6))
                         popup.open()
                         error = True
