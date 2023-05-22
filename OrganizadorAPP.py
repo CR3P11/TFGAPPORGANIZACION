@@ -1103,23 +1103,26 @@ class Musica(Screen):
         super().__init__(**kwargs)
         self.sound = None
     
+
+
     def play_music(self, pista):
         if pista == 1:
             if self.sound:
                 self.sound.stop()
-            # Cargar el archivo de audio
-            self.sound = SoundLoader.load('Assets\\Sound\\Lofi1.mp3')
+            # Construir la ruta del archivo de audio
+            audio_file = os.path.join('Assets', 'Sound', 'Lofi1.mp3')
+            self.sound = SoundLoader.load(audio_file)
         elif pista == 2:
             if self.sound:
                 self.sound.stop()
-            self.sound = SoundLoader.load('Assets\\Sound\\Lofi2.mp3') 
+            audio_file = os.path.join('Assets', 'Sound', 'Lofi2.mp3')
+            self.sound = SoundLoader.load(audio_file)
+            
         if self.sound:
-            # Establecer la propiedad loop en True para reproducir en bucle
             self.sound.loop = True
-            # Reproducir el archivo de audio
-            self.sound.play()   
-    
-    
+            self.sound.play()
+
+        
     
     def stop_music(self):
         if self.sound:
