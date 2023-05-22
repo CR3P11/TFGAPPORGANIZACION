@@ -42,6 +42,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 import os
+from requests.exceptions import ConnectionError
 
 Config.set('graphics', 'width', '400')
 Config.set('graphics', 'height', '600')
@@ -74,11 +75,20 @@ class Organizador(App):
         #Este es el primer metodo que se ejecuta en una app de kivy
         
         Builder.load_file('Diseño.kv')
-        
-        screen_manager = self.InicializarScreens(screen_manager)
 
+        error_conexion_screen = Screen(name='ErrorConexion')
+        error_conexion_screen.add_widget(ErrorConexion())
+        screen_manager.add_widget(error_conexion_screen)
+       
+        try: 
+            screen_manager = self.InicializarScreens(screen_manager)
+            self.ColorCanvas("verde", True)
+        except Exception as e:
+           
+            screen_manager.current = 'ErrorConexion'
+   
         
-        self.ColorCanvas("verde", True)
+        
 
         
         # screen_manager.current = 'acceder'
@@ -96,6 +106,10 @@ class Organizador(App):
         self.screen_manager.current = 'principal'
         
     def InicializarScreens(self,screen_manager):
+
+        
+
+
         acceder_screen = Screen(name='acceder')
         acceder_screen.add_widget(Acceder())
         screen_manager.add_widget(acceder_screen)
@@ -127,6 +141,9 @@ class Organizador(App):
         show_notes_screen = Screen(name='MostrarNotas')
         show_notes_screen.add_widget(PantallaMostrarNotas())
         screen_manager.add_widget(show_notes_screen)
+
+
+       
 
 
 
@@ -431,11 +448,13 @@ class PantallaMochila(Screen):
             
             for user in usuario:
                 if user['id'] == Organizador.usuarioActual:
+                    if 'Mochilas' not in user:
+                        user['Mochilas'] = []
                     for element in user['Mochilas']:
                         for mochila in mochilas:
                             if mochila is None:
                                 continue
-                            if element == mochila['id_mochila']:
+                            if element == str(mochila['id_mochila']):
                                 self.mochilas.append(mochila)
                                 i+=1
                                 break
@@ -581,7 +600,7 @@ class Items(Screen):
     def __init__(self, mochila):
         # Guardar el nombre de la mochila en un atributo
         self.nombre_mochila = mochila
-        
+       
         # Crear un GridLayout para los items
         self.items_layout.bind(minimum_height=self.items_layout.setter('height'))
 
@@ -618,14 +637,20 @@ class Items(Screen):
         self.items_layout.height = len(items) * (dp(40) + self.items_layout.spacing[1])
    
         # Añadir el ScrollView que contendrá los botones de los items
-        scroll_view = ScrollView()
-        scroll_view.add_widget(self.items_layout)
+        # if hasattr(self.items_layout, 'parent') and isinstance(self.items_layout.parent, ScrollView):
+        #     self.items_layout.parent.remove_widget(ScrollView)
+
+
+        scroll_view = None
+        if not scroll_view:
+            scroll_view = ScrollView()
+            scroll_view.add_widget(self.items_layout)
         super().__init__()
         self.add_widget(mochila_label)
         self.add_widget(scroll_view)
         self.add_widget(Button(text="<", size_hint=(0.15, 0.05), pos_hint={"x": 0, "top": 0.98}, on_release=lambda event: self.pantallaAnterior(scroll_view,self.items_layout)))
         self.add_widget(Button(text="+", size_hint=(0.15, 0.05), pos_hint={"x": 0.80, "top": 0.98}, on_release=lambda event: self.AñadirItems(mochila,scroll_view,self.items_layout)))
-        self.add_widget(Button(text="Eliminar Mochila", size_hint=(0.3, 0.06), pos_hint={"x": 0.35, "top": 0.98}, on_release=lambda event: self.eliminarMochila(mochila)))
+        self.add_widget(Button(text="Eliminar Mochila", size_hint=(0.3, 0.06), pos_hint={"x": 0.35, "top": 0.98}, on_release=lambda event: self.eliminarMochila(mochila,scroll_view,self.items_layout)))
     def eliminarItem(self, nombre_item, mochila,scroll_view, items_layout):
         # Obtener la lista actual de items de la mochila
         mochilas = json.load(open("mochilas.json", "r"))
@@ -647,7 +672,7 @@ class Items(Screen):
         self.__init__(mochila)
 
         
-    def eliminarMochila(self,mochila):
+    def eliminarMochila(self,mochila,scroll_view,items_layout):
         mochilas = json.load(open("mochilas.json", "r"))
 
         # Eliminar la mochila
@@ -660,7 +685,7 @@ class Items(Screen):
         with open("mochilas.json", "w") as file:
             json.dump(mochilas, file)
         
-        self.screen_manager.current = 'mochila'
+        self.pantallaAnterior(scroll_view,items_layout)
         mochila_instance = PantallaMochila.instance
         if mochila_instance:
             mochila_instance.actualizar()
@@ -737,10 +762,12 @@ class Items(Screen):
 
 
 class PantallaContactos(Screen):
-    urlMochila = "https://organizador-mochila.firebaseio.com/.json"
+    
     key= "DDG9a9IkOp9ZtvtbhmU0BPJacoBfSxsb4KglypP6"
     url="https://organizador-5de77-default-rtdb.europe-west1.firebasedatabase.app/.json"
     
+    screen_manager = Organizador.screen_manager
+
     actualizada = False
     instance = None
 
@@ -750,6 +777,7 @@ class PantallaContactos(Screen):
             PantallaContactos.instance = self
             data = requests.get(self.url+'?auth='+self.key)
             scrollview = self.ids.layout_scroll
+            
             for user in data.json():
                 if user['id'] == Organizador.usuarioActual:
                     if 'Amigos' not in user:
@@ -757,9 +785,11 @@ class PantallaContactos(Screen):
                     for amigo in user['Amigos']:
                         for user_ in data.json():
                             if user_['id'] == amigo:
-                                btn = Button(text=user_['User'])
-                                nombre_contacto = user_['User']
-                                btn.bind(on_release= lambda event: self.amigo(nombre_contacto))
+                                
+                                btn = Button(text=user_['User'], size_hint_y=None, height=dp(40),
+                                on_release=lambda event, button_text=user_['User']: self.amigo(button_text))
+
+                                
                                 logger.info(user_['User'])
                                 scrollview.add_widget(btn)
                                 
@@ -793,7 +823,7 @@ class PantallaContactos(Screen):
         # Popup
         popup = Popup(title=nombre_contacto, size_hint=(None, None), size=(400, 200))
         gridlayout = GridLayout(size_hint=(100, None), size=(400, 130), cols=1)
-        gridlayout.add_widget(Button(text="Ver Mochilas",on_release= lambda event: self.mochilasContacto(nombre_contacto)))
+        gridlayout.add_widget(Button(text="Ver Mochilas",on_release= lambda event: self.mochilasContacto(nombre_contacto,popup)))
         # gridlayout.add_widget(Button(text="Chatear"))
         gridlayout.add_widget(Button(text="Eliminar Contacto",on_release= lambda event: self.eliminarContacto(nombre_contacto,popup)))
         gridlayout.add_widget(Button(text="Salir", on_release=lambda event: popup.dismiss()))
@@ -817,7 +847,7 @@ class PantallaContactos(Screen):
                 else:
                     for user_ in data.json():
                         if user_['id'] == Organizador.usuarioActual:
-                            if 'Amigos' not in user:
+                            if 'Amigos' not in user_:
                                 user_['Amigos'] = []  # Crear el campo 'Amigos' como una lista vacía
                             if user['id'] in user_['Amigos']:
                                 # logger.info('Ya eres amigo de ese usuario')
@@ -828,7 +858,20 @@ class PantallaContactos(Screen):
                                 # logger.info('El usuario existe y se va a agregar')
                                 existe = True
                                 
+                                user_['Amigos'].append(user['id'])
+                                upload_data={user_['id']:user_}
                                 
+
+                                # Realizar la solicitud PATCH a Firebase
+                                response = requests.patch(url=self.url, json=upload_data)
+
+                                # Verificar el código de respuesta de la solicitud
+                                if response.status_code == 200:
+                                    print("Los datos se actualizaron correctamente en Firebase.")
+                                else:
+                                    print("Hubo un error al actualizar los datos en Firebase.")
+                                    print("Código de respuesta:", response.status_code)
+
                                 mensaje = 'Correcto'
                                 self.actualizar()
                                 break
@@ -849,8 +892,19 @@ class PantallaContactos(Screen):
             
 
         popup.dismiss()
-    def mochilasContacto(self,nombre_contacto):
-        logger.info('Mochilas Contacto')
+    def mochilasContacto(self,nombre_contacto,popup):
+        
+        if "MochilasAmigo" in self.screen_manager.screen_names:
+            self.screen_manager.remove_widget(self.screen_manager.get_screen("MochilasAmigo"))
+        
+        backpack_friend_screen = Screen(name='MochilasAmigo')
+
+        backpack_friend_screen.add_widget(MochilasAmigo(nombre_contacto))
+        self.screen_manager.add_widget(backpack_friend_screen)
+        
+        popup.dismiss()
+
+        self.screen_manager.current = "MochilasAmigo"
 
     def eliminarContacto(self,nombre_contacto,popup):
         data = requests.get(self.url+'?auth='+self.key)
@@ -859,6 +913,17 @@ class PantallaContactos(Screen):
                 for user_ in data.json():
                     if user_['User'] == nombre_contacto:
                         user['Amigos'].remove(user_['id'])
+                        upload_data={user['id']:user}
+                        response = requests.patch(url=self.url, json=upload_data)
+
+                        # Verificar el código de respuesta de la solicitud
+                        if response.status_code == 200:
+                            print("Los datos se actualizaron correctamente en Firebase.")
+                        else:
+                            print("Hubo un error al actualizar los datos en Firebase.")
+                            print("Código de respuesta:", response.status_code)
+
+                        self.actualizar()
                         break
         requests.patch(url=self.url,json = data.json())
         popup.dismiss()
@@ -913,7 +978,99 @@ class PantallaAjustes(Screen):
         self.screen_manager.add_widget(usuario_screen)
 
         self.screen_manager.current = 'usuario'
+class MochilasAmigo(Screen):
+    urlMochila = "https://organizador-mochila.firebaseio.com/.json"
+    key= "DDG9a9IkOp9ZtvtbhmU0BPJacoBfSxsb4KglypP6"
+    url="https://organizador-5de77-default-rtdb.europe-west1.firebasedatabase.app/.json"
 
+    screen_manager = Organizador.screen_manager
+
+    instance = None
+
+    def __init__(self, nombre_contacto, **kwargs):
+        super().__init__(**kwargs)
+        MochilasAmigo.instance = self
+        self.ids.grid_backpack_friend.clear_widgets()
+        self.nombre_contacto = nombre_contacto
+
+        data = requests.get(self.url+'?auth='+self.key)
+        dataMochila = requests.get(self.urlMochila +'?auth='+self.key)
+        
+        for user in data.json():
+            if (user['User'] == nombre_contacto):
+                for mochila in dataMochila.json():
+                    if 'Mochilas' not in user:
+                        user['Mochilas'] = []
+                    if str(mochila['id_mochila'])  in user['Mochilas']:
+                        btn = Button(text=mochila['Nombre'], size_hint_y=None, height=dp(40), on_release=lambda event, button_text = mochila['Nombre'],id_mochila = mochila['id_mochila']: self.popUpMochila(button_text,id_mochila))
+                        self.ids.grid_backpack_friend.add_widget(btn)
+
+    def popUpMochila(self, nombre_Mochila,id_mochila):
+        popup = Popup(title=nombre_Mochila, size_hint=(None, None), size=(dp(200), dp(150)))
+        popup.content = BoxLayout(orientation='vertical')
+        popup.content.add_widget(Button(text='Añadir Mochila '+nombre_Mochila, size_hint_y=None, height=dp(40), on_release=lambda event: añadirMochila(str(id_mochila))))
+        popup.content.add_widget(Button(text='Salir '+nombre_Mochila, size_hint_y=None, height=dp(40),on_release=popup.dismiss))
+        popup.open()
+        def añadirMochila(id_mochila):
+
+            data = requests.get(self.url+'?auth='+self.key)
+            
+            encontrado = False
+            for user in data.json():
+                if encontrado:
+                    break
+                if (user['id'] == Organizador.usuarioActual):
+                    if 'Mochilas' not in user:
+                        user['Mochilas'] = []
+                        user['Mochilas'].append(id_mochila)
+                        upload_data={user['id']:user}
+                        response = requests.patch(url=self.url, json=upload_data)
+
+                        # Verificar el código de respuesta de la solicitud
+                        if response.status_code == 200:
+                            print("Los datos se actualizaron correctamente en Firebase.")
+                        
+                        else:
+                            print("Hubo un error al actualizar los datos en Firebase.")
+                            print("Código de respuesta:", response.status_code)
+                        encontrado = True
+                        mochila_instance = PantallaMochila.instance
+                        if os.path.exists('mochilas.json'):
+                            os.remove('mochilas.json')
+                        if mochila_instance:
+                            mochila_instance.actualizar()
+                        popup.dismiss()
+                        break
+        
+                        
+                    if str(id_mochila) in user['Mochilas']:
+                        logger.info('El usuario ya tiene esa mochila')
+                        popup.dismiss()
+                        encontrado = True
+                        break
+                    else:
+                        user['Mochilas'].append(id_mochila)
+                        upload_data={user['id']:user}
+                        response = requests.patch(url=self.url, json=upload_data)
+
+                        # Verificar el código de respuesta de la solicitud
+                        if response.status_code == 200:
+                            print("Los datos se actualizaron correctamente en Firebase.")
+                        else:
+                            print("Hubo un error al actualizar los datos en Firebase.")
+                            print("Código de respuesta:", response.status_code)
+                            popup.dismiss()
+                            encontrado = True
+                        mochila_instance = PantallaMochila.instance
+                        if os.path.exists('mochilas.json'):
+                            os.remove('mochilas.json')
+                        if mochila_instance:
+                            mochila_instance.actualizar()
+                        popup.dismiss()
+                        break
+
+    
+    
 
 class SelectColor(Screen):
     screen_manager = Organizador().screen_manager
@@ -970,11 +1127,12 @@ class Musica(Screen):
 class Imagen(Screen):
     url = Organizador().url
     key = Organizador().key
-    data = requests.get(url + '?auth=' + key)
+    
 
     def __init__(self, **kwargs):
         super(Imagen, self).__init__(**kwargs)
-        for value in self.data.json():
+        data = requests.get(self.url + '?auth=' + self.key)
+        for value in data.json():
             if Organizador.usuarioActual == value['id']:
                 imagen = value['image']
 
@@ -985,12 +1143,13 @@ class Imagen(Screen):
         file_chooser = FileChooserIconView()
 
         def select_callback(*args):
+            data = requests.get(self.url + '?auth=' + self.key)
             selected_file = args[1][0]  # Obtener el primer archivo seleccionado
             imagen = "data:image/png;base64," + Imagen.image_to_base64(selected_file)
             # imagen = 'Prueba'
             self.ids.imagen.source = imagen
             popup.dismiss()
-            for value in self.data.json():
+            for value in data.json():
                 if value['id'] == Organizador.usuarioActual:
                     value['image'] = imagen
                     send_data = {'image': imagen}
@@ -1027,7 +1186,7 @@ class Imagen(Screen):
 class Usuario(Screen):
     url = Organizador().url
     key = Organizador().key
-    data = requests.get(url + '?auth=' + key)   
+    
 
     def __init__(self):
         super().__init__()
@@ -1044,10 +1203,11 @@ class Usuario(Screen):
         # logger.info(nombre)
         # logger.info(edad)
         # logger.info(descripcion)
+        data = requests.get(self.url + '?auth=' + self.key)   
         error = False
-        for value in self.data.json():
+        for value in data.json():
             if value['id'] == Organizador.usuarioActual:
-                for item in self.data.json():
+                for item in data.json():
                     if len(usuario) < 4:
                         popup = Popup(title="Error", content=Label(text="El usuario es demasiado corto"), size_hint=(0.6, 0.6))
                         popup.open()
@@ -1103,13 +1263,8 @@ class Usuario(Screen):
 
 
 
-# class CustomScreenManager(Screen):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         # Reemplazar las pantallas existentes con instancias de ColorScreen modificadas
-#         for name, screen in self.screens.items():
-#             self.remove_widget(screen)
-#             self.add_widget(ColorScreen(name=name))
+
+
             
 class ContenidoScreen(Screen):
     screen_manager = Organizador().screen_manager
@@ -1137,7 +1292,8 @@ class ContenidoScreen(Screen):
         self.screen_manager.current = 'notas'
         self.screen_manager.remove_widget(self.screen_manager.get_screen('contenido'))
 
-
+class ErrorConexion(Screen):
+    pass
 
 
 if __name__ == '__main__':
@@ -1145,5 +1301,10 @@ if __name__ == '__main__':
         
         Organizador().run()
 
+    except requests.exceptions.HTTPError or  ConnectionError :
+        Organizador.screen_manager.current = 'ErrorConexion'
+  
+
     except Exception as e:
         logger.error(e)
+        

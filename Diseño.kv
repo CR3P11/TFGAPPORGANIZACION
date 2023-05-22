@@ -253,9 +253,29 @@
                 id: layout_scroll
                 cols: 1
                 spacing: 20
-                padding: 20
-                size_hint_y: None  # Desactivar el tamaño automático en el eje y
-                height: 50   # Establecer la altura en función del contenido
+                padding: 10
+                size_hint_y: 0.2
+
+
+<MochilasAmigo>:
+    id: screen_backpack_friend
+    FloatLayout:
+        id: layout_backpack_friend
+        Button:
+            text: "<"
+            size_hint: 0.15, 0.05
+            pos_hint: {"top": 0.95, "center_x": 0.17}
+            on_release: app.pantallaPrincipal()
+        ScrollView:
+            id: scroll_view
+            pos_hint: {"top": 0.9, "center_x": 0.5}
+            GridLayout:
+                id: grid_backpack_friend
+                cols: 1
+                spacing: 20
+                padding: 10
+                size_hint_y: 0.2 
+
 
 
 
@@ -472,3 +492,15 @@
             size_hint: 0.2, 0.05
             pos_hint: {"top": 0.95, "center_x": 0.5}
             on_release: root.save(username_input.text,name_input.text,edad.text,descripcion.text)
+<ErrorConexion>:
+    id: error_conexion
+    FloatLayout:
+        Label:
+            text: "Error al conectar"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.8, "center_x": 0.5}
+        Button:
+            text: "Reintentar"
+            size_hint: 1, 0.1
+            pos_hint: {"top": 0.2, "center_x": 0.5}
+            on_release: app.build()
